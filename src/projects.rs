@@ -21,10 +21,16 @@ impl Projects {
 
         let walk = WalkBuilder::new(dir)
             .max_depth(Some(1))
-            .filter_entry(|e| e.file_type().map(|ft| ft.is_dir()).unwrap_or(false) && e.depth() > 0)
+            // Filter only for subdirectories
+            .filter_entry(|e| e.file_type().map(|ft| ft.is_dir()).unwrap_or(false))
             .build();
 
-        for entry in walk.into_iter().filter_map(|e| e.ok()) {
+        for entry in walk
+            .into_iter()
+            .filter_map(|e| e.ok())
+            // Filter out the root directory
+            .filter(|e| e.depth() > 0)
+        {
             let path = entry.into_path();
             let contents = fs::read_dir(&path)?
                 .filter_map(|e| e.ok())
