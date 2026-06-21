@@ -1,7 +1,7 @@
 mod display;
 mod projects;
 
-use clap::{ArgAction, Parser, crate_authors, crate_name, crate_version, value_parser};
+use clap::{ArgAction, Parser, ValueEnum, crate_authors, crate_name, crate_version, value_parser};
 use display::print_groups;
 use projects::{ProjectType, Projects};
 use std::{
@@ -30,9 +30,19 @@ struct Cli {
         value_parser = value_parser!(String),
     )]
     dir: Option<String>,
+
+    /// Sort order for projects within each group
+    #[arg(long, short, value_enum, default_value_t = SortOrder::Name)]
+    sort: SortOrder,
 }
 
-// TODO: sort in groups based on most recently updated?
+#[derive(ValueEnum, Clone, Default)]
+enum SortOrder {
+    #[default]
+    Name,
+    Modified,
+}
+
 // TODO: option to pull info from github?
 // TODO: option to change depth
 // TODO: list line by line (-1)
@@ -45,7 +55,7 @@ fn main() -> io::Result<()> {
     let projects = Projects::collect(&dir)?;
 
     let mut stdout = io::stdout();
-    print_groups(&mut stdout, projects)?;
+    print_groups(&mut stdout, projects, &cli.sort)?;
     stdout.flush()?;
 
     Ok(())
