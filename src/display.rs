@@ -20,12 +20,15 @@ pub fn print_groups(
     let mut groups: Vec<(&ProjectType, &Vec<PathBuf>)> = projects.by_type.iter().collect();
     groups.sort_by_key(|(pt, _)| format!("{pt:?}"));
 
+    let mut first = true;
     for (project_type, dirs) in groups {
-        writeln!(
-            stdout,
-            "\n{}",
-            format!("{project_type:?}").bold().underline()
-        )?;
+        // Only print newline separator after the first grouping
+        if !first {
+            writeln!(stdout)?;
+        }
+        first = false;
+
+        writeln!(stdout, "{}", format!("{project_type:?}").bold().underline())?;
         let names: Vec<(&str, &PathBuf)> = dirs
             .iter()
             .filter_map(|p| Some((p.file_name()?.to_str()?, p)))
@@ -34,7 +37,12 @@ pub fn print_groups(
     }
 
     if !projects.unknown.is_empty() {
-        writeln!(stdout, "\n{}", "Unknown".bold().underline())?;
+        // Only print newline separator after the first grouping
+        if !first {
+            writeln!(stdout)?;
+        }
+
+        writeln!(stdout, "{}", "Unknown".bold().underline())?;
         let names: Vec<(&str, &PathBuf)> = projects
             .unknown
             .iter()
