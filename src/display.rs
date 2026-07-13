@@ -9,7 +9,7 @@ use terminal_size::{Width, terminal_size};
 pub fn print_groups(
     stdout: &mut impl Write,
     projects: Projects,
-    sort: &SortOrder,
+    sort: SortOrder,
 ) -> io::Result<()> {
     let mut groups: Vec<(&ProjectType, &Vec<PathBuf>)> = projects.by_type.iter().collect();
     groups.sort_by_key(|(pt, _)| format!("{pt:?}"));
@@ -43,7 +43,7 @@ pub fn print_groups(
 fn print_names(
     stdout: &mut impl Write,
     names: &[(&str, &PathBuf)],
-    sort: &SortOrder,
+    sort: SortOrder,
 ) -> io::Result<()> {
     let mut sorted = names.to_vec();
 

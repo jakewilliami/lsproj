@@ -35,7 +35,7 @@ struct Cli {
     filter: Option<ProjectType>,
 }
 
-#[derive(ValueEnum, Clone, Default)]
+#[derive(ValueEnum, Clone, Copy, Default)]
 enum SortOrder {
     #[default]
     Name,
@@ -57,7 +57,7 @@ fn main() -> io::Result<()> {
     let projects = Projects::collect(&dir, cli.filter)?;
 
     let mut stdout = io::stdout();
-    print_groups(&mut stdout, projects, &cli.sort)?;
+    print_groups(&mut stdout, projects, cli.sort)?;
     stdout.flush()?;
 
     Ok(())
