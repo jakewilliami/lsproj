@@ -49,7 +49,7 @@ enum SortOrder {
 // TODO: option to pull info from github?
 // TODO: option to change depth
 // TODO: add additional checking that (for example) rust projects have a src directory
-// TODO: it would be great if I could pipe the output to rg or fd so that I could find something within those directories if I could filter by type
+// TODO: it would be great if I could pipe the output to rg or fd so that I could find something within those directories if I could filter by type - what about something like rust/gl rust/lsproj etc.
 // TODO: go through common defaults in order or precedence, like ~/projects, ~/Programming, etc.?
 // TODO: sort project grouping order too?
 // TODO: warn rather than error in collect if something can't be read?
@@ -71,7 +71,7 @@ fn main() -> io::Result<()> {
     // Print projects in groups organised by project type
     let display_opts = DisplayOpts {
         sort: cli.sort,
-        one_per_line: cli.one_per_line,
+        one_per_line: cli.one_per_line || !stdout.is_terminal(),
     };
     print_groups(&mut stdout, projects, &display_opts)?;
     stdout.flush()?;
