@@ -30,9 +30,9 @@ struct Cli {
     #[arg(long, short, value_enum, default_value_t = SortOrder::Name)]
     sort: SortOrder,
 
-    /// Filter by project type
+    /// Filter by project type(s)
     #[arg(short = 't', long = "type", value_enum, value_name = "PROJECT TYPE")]
-    filter: Option<ProjectType>,
+    filter: Vec<ProjectType>,
 }
 
 #[derive(ValueEnum, Clone, Copy, Default)]
@@ -46,9 +46,10 @@ enum SortOrder {
 // TODO: option to change depth
 // TODO: list line by line (-1)
 // TODO: add additional checking that (for example) rust projects have a src directory
-// TODO: allow type filter to take multiple values??
 // TODO: it would be great if I could pipe the output to rg or fd so that I could find something within those directories if I could filter by type
 // TODO: go through common defaults in order or precedence, like ~/projects, ~/Programming, etc.?
+// TODO: sort project grouping order too?
+// TODO: warn rather than error in collect if something can't be read?
 
 fn main() -> io::Result<()> {
     let cli = Cli::parse();

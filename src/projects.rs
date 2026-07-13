@@ -16,7 +16,7 @@ pub struct Projects {
 }
 
 impl Projects {
-    pub fn collect(dir: &PathBuf, filter: Option<ProjectType>) -> io::Result<Self> {
+    pub fn collect(dir: &PathBuf, filter: Vec<ProjectType>) -> io::Result<Self> {
         let mut by_type: HashMap<ProjectType, Vec<PathBuf>> = HashMap::new();
         let mut unknown: Vec<PathBuf> = Vec::new();
 
@@ -40,12 +40,12 @@ impl Projects {
 
             match classify_project(&contents) {
                 Some(pt) => {
-                    if filter.is_none_or(|f| f == pt) {
+                    if filter.is_empty() || filter.contains(&pt) {
                         by_type.entry(pt).or_default().push(path);
                     }
                 }
                 None => {
-                    if filter.is_none() {
+                    if filter.is_empty() {
                         unknown.push(path);
                     }
                 }
