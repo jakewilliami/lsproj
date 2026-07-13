@@ -11,6 +11,7 @@ use terminal_size::{Width, terminal_size};
 pub struct DisplayOpts {
     pub sort: SortOrder,
     pub one_per_line: bool,
+    pub plain: bool,
 }
 
 #[derive(ValueEnum, Clone, Copy, Default)]
@@ -30,33 +31,45 @@ pub fn print_groups(
 
     let mut first = true;
     for (project_type, dirs) in groups {
-        // Only print newline separator after the first grouping
-        if !first {
-            writeln!(stdout)?;
-        }
-        first = false;
+        let label = format!("{project_type:?}");
 
-        writeln!(stdout, "{}", format!("{project_type:?}").bold().underline())?;
+        // Print project type header
+        if !opts.plain {
+            // Only print newline separator after the first grouping
+            if !first {
+                writeln!(stdout)?;
+            }
+            first = false;
+            writeln!(stdout, "{}", label.bold().underline())?;
+        }
+
+        // Print project names under header
         let names: Vec<(&str, &PathBuf)> = dirs
             .iter()
             .filter_map(|p| Some((p.file_name()?.to_str()?, p)))
             .collect();
-        print_names(stdout, &names, &opts)?;
+        let prefix = opts.plain.then(|| label.to_lowercase());
+        print_names(stdout, &names, opts, prefix.as_deref())?;
     }
 
     if !projects.unknown.is_empty() {
-        // Only print newline separator after the first grouping
-        if !first {
-            writeln!(stdout)?;
+        // Print unknown project header
+        if !opts.plain {
+            // Only print newline separator after the first grouping
+            if !first {
+                writeln!(stdout)?;
+            }
+            writeln!(stdout, "{}", "Unknown".bold().underline())?;
         }
 
-        writeln!(stdout, "{}", "Unknown".bold().underline())?;
+        // Print unknown project names
         let names: Vec<(&str, &PathBuf)> = projects
             .unknown
             .iter()
             .filter_map(|p| Some((p.file_name()?.to_str()?, p)))
             .collect();
-        print_names(stdout, &names, &opts)?;
+        let prefix = opts.plain.then_some("unknown");
+        print_names(stdout, &names, opts, prefix)?;
     }
 
     Ok(())
@@ -66,6 +79,7 @@ fn print_names(
     stdout: &mut impl Write,
     names: &[(&str, &PathBuf)],
     opts: &DisplayOpts,
+    prefix: Option<&str>,
 ) -> io::Result<()> {
     let mut sorted = names.to_vec();
 
@@ -77,6 +91,7 @@ fn print_names(
                     .and_then(|m| m.modified())
                     .unwrap_or(std::time::SystemTime::UNIX_EPOCH)
             });
+
             // Sort by last modified first
             sorted.reverse();
         }
@@ -87,7 +102,10 @@ fn print_names(
     // Short circuit if user has requested one entry per line output
     if opts.one_per_line {
         for name in &sorted {
-            writeln!(stdout, "{name}")?;
+            match prefix {
+                Some(p) => writeln!(stdout, "{p}/{name}")?,
+                None => writeln!(stdout, "{name}")?,
+            }
         }
 
         return Ok(());

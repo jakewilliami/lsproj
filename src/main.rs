@@ -36,13 +36,19 @@ struct Cli {
     /// Display one entry per line
     #[arg(short = '1')]
     one_per_line: bool,
+
+    /// Produce plain output sans visual grouping
+    ///
+    /// Each line of this output is of the format `<type>/<name>`.  This output is the default when the descriptor/handle refers to a terminal/TTY.  It is useful when piping into other commands if you still need to retain non-visual grouping information.  This ouput also forces the `-1` option.
+    #[arg(long = "plain")]
+    plain: bool,
 }
 
 // TODO: option to pull info from github?
 // TODO: option to change depth
 // TODO: add additional checking that (for example) rust projects have a src directory
-// TODO: it would be great if I could pipe the output to rg or fd so that I could find something within those directories if I could filter by type - what about something like rust/gl rust/lsproj etc.
 // TODO: go through common defaults in order or precedence, like ~/projects, ~/Programming, etc.?
+// TODO: do I need to specify group if there is only one type specified?
 // TODO: sort project grouping order too?
 // TODO: warn rather than error in collect if something can't be read?
 
@@ -55,14 +61,16 @@ fn main() -> io::Result<()> {
     // Set colour to false where appropriate
     //   <no-color.org>
     let mut stdout = io::stdout();
-    if is_set("NO_COLOR") || is_set("NO_COLOUR") || !stdout.is_terminal() {
+    let is_terminal = stdout.is_terminal();
+    if is_set("NO_COLOR") || is_set("NO_COLOUR") || !is_terminal {
         colored::control::set_override(false);
     }
 
     // Print projects in groups organised by project type
     let display_opts = DisplayOpts {
         sort: cli.sort,
-        one_per_line: cli.one_per_line || !stdout.is_terminal(),
+        one_per_line: cli.one_per_line || !is_terminal || cli.plain,
+        plain: cli.plain || !is_terminal,
     };
     print_groups(&mut stdout, projects, &display_opts)?;
     stdout.flush()?;
