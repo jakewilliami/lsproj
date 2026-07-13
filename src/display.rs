@@ -1,4 +1,5 @@
-use crate::{ProjectType, Projects, SortOrder};
+use crate::{ProjectType, Projects};
+use clap::ValueEnum;
 use colored::Colorize;
 use std::{
     io::{self, Write},
@@ -10,6 +11,13 @@ use terminal_size::{Width, terminal_size};
 pub struct DisplayOpts {
     pub sort: SortOrder,
     pub one_per_line: bool,
+}
+
+#[derive(ValueEnum, Clone, Copy, Default)]
+pub enum SortOrder {
+    #[default]
+    Name,
+    Modified,
 }
 
 pub fn print_groups(

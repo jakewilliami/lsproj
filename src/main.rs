@@ -1,8 +1,8 @@
 mod display;
 mod projects;
 
-use clap::{Parser, ValueEnum, crate_authors, crate_name, crate_version};
-use display::{DisplayOpts, print_groups};
+use clap::{Parser, crate_authors, crate_name, crate_version};
+use display::{DisplayOpts, SortOrder, print_groups};
 use projects::{ProjectType, Projects};
 use std::{
     env,
@@ -37,13 +37,6 @@ struct Cli {
     /// Display one entry per line
     #[arg(short = '1')]
     one_per_line: bool,
-}
-
-#[derive(ValueEnum, Clone, Copy, Default)]
-enum SortOrder {
-    #[default]
-    Name,
-    Modified,
 }
 
 // TODO: option to pull info from github?
