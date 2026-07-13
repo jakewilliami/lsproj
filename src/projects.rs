@@ -1,7 +1,8 @@
+use clap::ValueEnum;
 use ignore::WalkBuilder;
 use std::{collections::HashMap, fs, io, path::PathBuf};
 
-#[derive(Debug, Hash, PartialEq, Eq)]
+#[derive(Debug, Hash, PartialEq, Eq, Clone, Copy, ValueEnum)]
 pub enum ProjectType {
     Julia,
     Rust,
@@ -15,7 +16,7 @@ pub struct Projects {
 }
 
 impl Projects {
-    pub fn collect(dir: &PathBuf) -> io::Result<Self> {
+    pub fn collect(dir: &PathBuf, filter: Option<ProjectType>) -> io::Result<Self> {
         let mut by_type: HashMap<ProjectType, Vec<PathBuf>> = HashMap::new();
         let mut unknown: Vec<PathBuf> = Vec::new();
 
@@ -38,8 +39,16 @@ impl Projects {
                 .collect::<Vec<_>>();
 
             match classify_project(&contents) {
-                Some(pt) => by_type.entry(pt).or_default().push(path),
-                None => unknown.push(path),
+                Some(pt) => {
+                    if filter.is_none_or(|f| f == pt) {
+                        by_type.entry(pt).or_default().push(path);
+                    }
+                }
+                None => {
+                    if filter.is_none() {
+                        unknown.push(path);
+                    }
+                }
             }
         }
 

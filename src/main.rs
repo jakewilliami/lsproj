@@ -1,7 +1,7 @@
 mod display;
 mod projects;
 
-use clap::{ArgAction, Parser, ValueEnum, crate_authors, crate_name, crate_version, value_parser};
+use clap::{Parser, ValueEnum, crate_authors, crate_name, crate_version};
 use display::print_groups;
 use projects::{ProjectType, Projects};
 use std::{
@@ -23,17 +23,16 @@ struct Cli {
     /// The starting directory of your projects directory (optional)
     ///
     /// By default, the starting directory is ~/projects/, and falls back to current directory
-    #[arg(
-        action = ArgAction::Set,
-        num_args = 0..=1,
-        value_name = "projects directory",
-        value_parser = value_parser!(String),
-    )]
+    #[arg(value_name = "PROJECTS DIRECTORY")]
     dir: Option<String>,
 
     /// Sort order for projects within each group
     #[arg(long, short, value_enum, default_value_t = SortOrder::Name)]
     sort: SortOrder,
+
+    /// Filter by project type
+    #[arg(short = 't', long = "type", value_enum, value_name = "PROJECT TYPE")]
+    filter: Option<ProjectType>,
 }
 
 #[derive(ValueEnum, Clone, Default)]
@@ -47,12 +46,15 @@ enum SortOrder {
 // TODO: option to change depth
 // TODO: list line by line (-1)
 // TODO: add additional checking that (for example) rust projects have a src directory
+// TODO: allow type filter to take multiple values??
+// TODO: it would be great if I could pipe the output to rg or fd so that I could find something within those directories if I could filter by type
+// TODO: go through common defaults in order or precedence, like ~/projects, ~/Programming, etc.?
 
 fn main() -> io::Result<()> {
     let cli = Cli::parse();
     let dir = resolve_dir(cli.dir);
 
-    let projects = Projects::collect(&dir)?;
+    let projects = Projects::collect(&dir, cli.filter)?;
 
     let mut stdout = io::stdout();
     print_groups(&mut stdout, projects, &cli.sort)?;
