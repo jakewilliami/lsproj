@@ -33,6 +33,10 @@ struct Cli {
     /// Filter by project type(s)
     #[arg(short = 't', long = "type", value_enum, value_name = "PROJECT TYPE")]
     filter: Vec<ProjectType>,
+
+    /// Display one entry per line
+    #[arg(short = '1')]
+    one_per_line: bool,
 }
 
 #[derive(ValueEnum, Clone, Copy, Default)]
@@ -44,7 +48,6 @@ enum SortOrder {
 
 // TODO: option to pull info from github?
 // TODO: option to change depth
-// TODO: list line by line (-1)
 // TODO: add additional checking that (for example) rust projects have a src directory
 // TODO: it would be great if I could pipe the output to rg or fd so that I could find something within those directories if I could filter by type
 // TODO: go through common defaults in order or precedence, like ~/projects, ~/Programming, etc.?
@@ -58,7 +61,7 @@ fn main() -> io::Result<()> {
     let projects = Projects::collect(&dir, cli.filter)?;
 
     let mut stdout = io::stdout();
-    print_groups(&mut stdout, projects, cli.sort)?;
+    print_groups(&mut stdout, projects, cli.sort, cli.one_per_line)?;
     stdout.flush()?;
 
     Ok(())

@@ -10,6 +10,7 @@ pub fn print_groups(
     stdout: &mut impl Write,
     projects: Projects,
     sort: SortOrder,
+    one_per_line: bool,
 ) -> io::Result<()> {
     let mut groups: Vec<(&ProjectType, &Vec<PathBuf>)> = projects.by_type.iter().collect();
     groups.sort_by_key(|(pt, _)| format!("{pt:?}"));
@@ -24,7 +25,7 @@ pub fn print_groups(
             .iter()
             .filter_map(|p| Some((p.file_name()?.to_str()?, p)))
             .collect();
-        print_names(stdout, &names, sort)?;
+        print_names(stdout, &names, sort, one_per_line)?;
     }
 
     if !projects.unknown.is_empty() {
@@ -34,7 +35,7 @@ pub fn print_groups(
             .iter()
             .filter_map(|p| Some((p.file_name()?.to_str()?, p)))
             .collect();
-        print_names(stdout, &names, sort)?;
+        print_names(stdout, &names, sort, one_per_line)?;
     }
 
     Ok(())
@@ -44,6 +45,7 @@ fn print_names(
     stdout: &mut impl Write,
     names: &[(&str, &PathBuf)],
     sort: SortOrder,
+    one_per_line: bool,
 ) -> io::Result<()> {
     let mut sorted = names.to_vec();
 
@@ -61,6 +63,15 @@ fn print_names(
     }
 
     let sorted: Vec<&str> = sorted.iter().map(|(name, _)| *name).collect();
+
+    // Short circuit if user has requested one entry per line output
+    if one_per_line {
+        for name in &sorted {
+            writeln!(stdout, "{name}")?;
+        }
+
+        return Ok(());
+    }
 
     let term_width = terminal_size()
         .map(|(Width(w), _)| w as usize)
