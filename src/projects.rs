@@ -1,6 +1,6 @@
 use clap::ValueEnum;
 use ignore::WalkBuilder;
-use std::{collections::HashMap, fs, io, path::PathBuf};
+use std::{collections::HashMap, env, fs, io, path::PathBuf};
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy, ValueEnum)]
 pub enum ProjectType {
@@ -16,7 +16,23 @@ pub struct Projects {
 }
 
 impl Projects {
-    pub fn collect(dir: &PathBuf, filter: Vec<ProjectType>) -> io::Result<Self> {
+    fn resolve_dir(dir: Option<String>) -> PathBuf {
+        // Use one of the following, whichever is found first:
+        //   - Provided directory
+        //   - ~/projects/
+        //   - env::current_dir()
+        //   - . (Unix current dir)
+        match dir {
+            Some(path) => PathBuf::from(path),
+            None => env::home_dir()
+                .map(|p| p.join("projects"))
+                .or_else(|| env::current_dir().ok())
+                .unwrap_or_else(|| PathBuf::from(".")),
+        }
+    }
+
+    pub fn collect(dir: Option<String>, filter: Vec<ProjectType>) -> io::Result<Self> {
+        let dir = Self::resolve_dir(dir);
         let mut by_type: HashMap<ProjectType, Vec<PathBuf>> = HashMap::new();
         let mut unknown: Vec<PathBuf> = Vec::new();
 

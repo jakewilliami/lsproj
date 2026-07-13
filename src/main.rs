@@ -7,7 +7,6 @@ use projects::{ProjectType, Projects};
 use std::{
     env,
     io::{self, IsTerminal, Write},
-    path::PathBuf,
 };
 
 #[derive(Parser)]
@@ -51,8 +50,7 @@ fn main() -> io::Result<()> {
     let cli = Cli::parse();
 
     // Collate projects from projects directory
-    let dir = resolve_dir(cli.dir);
-    let projects = Projects::collect(&dir, cli.filter)?;
+    let projects = Projects::collect(cli.dir, cli.filter)?;
 
     // Set colour to false where appropriate
     //   <no-color.org>
@@ -72,20 +70,10 @@ fn main() -> io::Result<()> {
     Ok(())
 }
 
-fn resolve_dir(dir: Option<String>) -> PathBuf {
-    match dir {
-        Some(path) => PathBuf::from(path),
-        None => env::home_dir()
-            .map(|p| p.join("projects"))
-            .or_else(|| env::current_dir().ok())
-            .unwrap_or_else(|| PathBuf::from(".")),
-    }
-}
-
 // Stolen from gl:
 //   <github.com/jakewilliami/gl/blob/9bd3fa96/src/env.rs#L1-L10>
 fn is_set(var: &str) -> bool {
-    let val = std::env::var(var);
+    let val = env::var(var);
 
     // Value must be set and non-empty
     if let Ok(val) = val {
