@@ -2,7 +2,7 @@ mod display;
 mod projects;
 
 use clap::{Parser, ValueEnum, crate_authors, crate_name, crate_version};
-use display::print_groups;
+use display::{DisplayOpts, print_groups};
 use projects::{ProjectType, Projects};
 use std::{
     env,
@@ -60,8 +60,13 @@ fn main() -> io::Result<()> {
 
     let projects = Projects::collect(&dir, cli.filter)?;
 
+    let display_opts = DisplayOpts {
+        sort: cli.sort,
+        one_per_line: cli.one_per_line,
+    };
+
     let mut stdout = io::stdout();
-    print_groups(&mut stdout, projects, cli.sort, cli.one_per_line)?;
+    print_groups(&mut stdout, projects, &display_opts)?;
     stdout.flush()?;
 
     Ok(())
