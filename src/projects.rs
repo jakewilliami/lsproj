@@ -4,8 +4,11 @@ use std::{collections::HashMap, env, fs, io, path::PathBuf};
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy, ValueEnum)]
 pub enum ProjectType {
+    #[value(alias = "jl")]
     Julia,
+    #[value(alias = "rs")]
     Rust,
+    #[value(alias = "py")]
     Python,
     Go,
 }
